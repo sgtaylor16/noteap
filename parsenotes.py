@@ -26,10 +26,10 @@ def AddClass(htmlline,class_name):
     return templist[0] + ' class="' + class_name + '">' + templist[1]
 
 def IsHeader(textline):
-    return bool(re.match('#{1,} ',textline))
+    return bool(re.match('#{1,}\s',textline))
 
 def StripHead(textline):
-    return re.split('(#|\*){1,}\s',textline,maxsplit=1)[1]
+    return re.split('#{1,}\s',textline,maxsplit=1)[1]
 
 def IsAction(textline):
     return bool(re.search("#[A-Z]",textline))
@@ -55,7 +55,7 @@ def WriteNotes(noteslist):
     return totalstring
 
 def AddHeader(meetingname):
-    return '<h1>' + meetingname + '</h1>' + '\n'
+    return '<h1>' + meetingname + '</h1>'
     
 def FindMeetings(folderpath):
     mdfiles = [f for f in listdir(folderpath) if f[-3:] == ".md"]
@@ -105,10 +105,10 @@ def TotalPage(folderpath,htmlpath,finalpagename):
     #Read in all of the notes
     allnotes = ComposePage(folderpath)
     #Add the two together
-    finalpage = split_template[0] + '\n' + allnotes + '\n' + '</body>\n' + split_template[1]
+    finalpage = split_template[0]  + allnotes  + '</body>' + split_template[1]
     #Write the final page
     outfilepath = folderpath + '/' + finalpagename + '.html'
-    with open(outfilepath) as fh:
+    with open(outfilepath,'w') as fh:
         fh.write(finalpage)
     
     return None
