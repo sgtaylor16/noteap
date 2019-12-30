@@ -29,7 +29,10 @@ def IsHeader(textline):
     return bool(re.match('#{1,}\s',textline))
 
 def StripHead(textline):
-    return re.split('#{1,}\s',textline,maxsplit=1)[1]
+    if bool(re.split('(#|\*){1,}\s',textline,maxsplit=1)):
+        return re.split('(#|\*){1,}\s',textline,maxsplit=1)[-1]
+    else:
+        return textline
 
 def IsAction(textline):
     return bool(re.search("#[A-Z]",textline))
@@ -38,9 +41,9 @@ def RenderLine(textline):
     if IsHeader(textline):
         return AddTag(StripHead(textline),'h2')
     elif IsAction(textline):
-        return AddClass(AddTag(textline,'li'),"Action")
+        return AddClass(AddTag(StripHead(textline),'li'),"Action")
     else:
-        return AddTag(textline,'p')
+        return AddTag(StripHead(textline),'li')
 
 def RenderNotes(linelist):
     htmllist = []
