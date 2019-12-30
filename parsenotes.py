@@ -10,11 +10,12 @@ def ReadinFile(path):
     with open(path,'r') as filename:
         return filename.read()
 
+def DeleteEmptyLines(noteslist):
+    return [line for line in noteslist if len(line) != 0]
+
 def SplitbyCarriage(text):
      return text.split('\n')
 
-def DeleteEmptyLines(noteslist):
-    return [line for line in noteslist if len(line) != 0]
 
 def AddTag(textline,tag):
     starttag = '<' + tag + '>'
@@ -53,7 +54,7 @@ def RenderNotes(linelist):
 
 def WriteNotes(noteslist):
     totalstring = ''
-    for line in noteslist:
+    for line in DeleteEmptyLines(noteslist):
         totalstring = totalstring + line + '\n'
     return totalstring
 
@@ -86,7 +87,7 @@ def FindLatest(meetingname,folderpath):
 
 def ReadMeeting(meetingpath):
     with open(meetingpath) as fh:
-        noteslist = RenderNotes(SplitbyCarriage(fh.read()))
+        noteslist = RenderNotes(DeleteEmptyLines(SplitbyCarriage(fh.read())))
     return noteslist
     
 def ComposePage(folderpath):
