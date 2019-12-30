@@ -96,3 +96,19 @@ def ComposePage(folderpath):
         temp = AddHeader(meetingname) + temp
         finalstring = finalstring + temp
     return finalstring
+
+def TotalPage(folderpath,htmlpath,finalpagename):
+    with open(htmlpath,'r') as fh:
+        template = fh.read()
+    #Split the template between the body tags
+    split_template = re.split("</body>",template)   #Rember that the /body is missing
+    #Read in all of the notes
+    allnotes = ComposePage(folderpath)
+    #Add the two together
+    finalpage = split_template[0] + '\n' + allnotes + '\n' + '</body>\n' + split_template[1]
+    #Write the final page
+    outfilepath = folderpath + '/' + finalpagename + '.html'
+    with open(outfilepath) as fh:
+        fh.write(finalpage)
+    
+    return None
