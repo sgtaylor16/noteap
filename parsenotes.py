@@ -29,7 +29,7 @@ def IsHeader(textline):
     return bool(re.match('#{1,} ',textline))
 
 def StripHead(textline):
-    return re.split('#{1,} ',textline,maxsplit=1)[1]
+    return re.split('(#|\*){1,}\s',textline,maxsplit=1)[1]
 
 def IsAction(textline):
     return bool(re.search("#[A-Z]",textline))
@@ -53,6 +53,9 @@ def WriteNotes(noteslist):
     for line in noteslist:
         totalstring = totalstring + line + '\n'
     return totalstring
+
+def AddHeader(meetingname):
+    return '<h1>' + meetingname + '</h1>' + '\n'
     
 def FindMeetings(folderpath):
     mdfiles = [f for f in listdir(folderpath) if f[-3:] == ".md"]
@@ -83,3 +86,13 @@ def ReadMeeting(meetingpath):
         noteslist = RenderNotes(SplitbyCarriage(fh.read()))
     return noteslist
     
+def ComposePage(folderpath):
+    #Get all the meetings
+    allmeetings = FindMeetings(folderpath)
+    finalstring = ''
+    #For Each meeting compose a string of the meeting notes
+    for meetingname in allmeetings:
+        temp = WriteNotes(ReadMeeting(FindLatest(meetingname,folderpath)))
+        temp = AddHeader(meetingname) + temp
+        finalstring = finalstring + temp
+    return finalstring
