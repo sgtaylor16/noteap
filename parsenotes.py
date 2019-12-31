@@ -13,32 +13,36 @@ def ReadinFile(path):
 def DeleteEmptyLines(noteslist):
     return [line for line in noteslist if len(line) != 0]
 
-def SplitbyCarriage(text):
-     return text.split('\n')
 
+#Functions that work on textlines
+
+def SplitbyCarriage(textline):
+     return textline.split('\n')
 
 def AddTag(textline,tag):
     starttag = '<' + tag + '>'
     endtag = '</' + tag + '>'
     return starttag + textline + endtag
 
-def AddClass(htmlline,class_name):
-    templist = re.split('>',htmlline,maxsplit=1)
-    return templist[0] + ' class="' + class_name + '">' + templist[1]
-
 def IsHeader(textline):
     return bool(re.match('#{1,}\s',textline))
 
+def IsAction(textline):
+    '''Function that returns True if textline has an #Name Tag.'''
+    return bool(re.search("#[A-Z]",textline))
+
 def StripHead(textline):
+    '''Function to strip a markdown # or * from the beginning of a line'''
     if bool(re.split('(#|\*){1,}\s',textline,maxsplit=1)):
         return re.split('(#|\*){1,}\s',textline,maxsplit=1)[-1]
     else:
         return textline
 
-def IsAction(textline):
-    return bool(re.search("#[A-Z]",textline))
-
+def SplitAction(textline):
+    return re.split('#(?=[A-Z])',textline)
+    
 def RenderLine(textline):
+    '''Function that turns a text line into an html line with tags'''
     if IsHeader(textline):
         return AddTag(StripHead(textline),'h2')
     elif IsAction(textline):
@@ -46,22 +50,35 @@ def RenderLine(textline):
     else:
         return AddTag(StripHead(textline),'li')
 
-def RenderNotes(linelist):
+#Functions that accept html lines
+
+def AddClass(htmlline,class_name):
+    '''Adds a class attribute to an html line.'''
+    templist = re.split('>',htmlline,maxsplit=1)
+    return templist[0] + ' class="' + class_name + '">' + templist[1]
+
+#Functions that accept a list of text lines.
+def RenderNotes(textlist):
     htmllist = []
-    for line in linelist:
+    for line in textlist:
         htmllist.append(RenderLine(line))
     return htmllist
 
-def WriteNotes(noteslist):
+def WriteNotes(textlist):
+    '''Takes a texlist, removes empty lines and returns a single string with newlines between
+    old list elements'''
     totalstring = ''
-    for line in DeleteEmptyLines(noteslist):
+    for line in DeleteEmptyLines(textlist):
         totalstring = totalstring + line + '\n'
     return totalstring
 
+#Other stuff
 def AddHeader(meetingname):
     return '<h1>' + meetingname + '</h1>'
     
 def FindMeetings(folderpath):
+    '''Looks in folderpath for meetings.  A meeting is any markdown file 
+    with the following format: dd-mm-yy.[meetingname] returns a list of distinct meeting names'''
     mdfiles = [f for f in listdir(folderpath) if f[-3:] == ".md"]
     meetingslist1= []
     for file in mdfiles:
@@ -75,6 +92,7 @@ def FindMeetings(folderpath):
     return meetingslist2
 
 def FindLatest(meetingname,folderpath):
+    '''Returns a full pathname to the latest file of meetingname'''
     allfiles = listdir(folderpath)
     thismeeting = [file for file in allfiles if meetingname in file]
     datearray = np.array([])
@@ -87,8 +105,8 @@ def FindLatest(meetingname,folderpath):
 
 def ReadMeeting(meetingpath):
     with open(meetingpath) as fh:
-        noteslist = RenderNotes(DeleteEmptyLines(SplitbyCarriage(fh.read())))
-    return noteslist
+        textlist = RenderNotes(DeleteEmptyLines(SplitbyCarriage(fh.read())))
+    return textlist
     
 def ComposePage(folderpath):
     #Get all the meetings
@@ -101,7 +119,7 @@ def ComposePage(folderpath):
         finalstring = finalstring + temp
     return finalstring
 
-def TotalPage(folderpath,htmlpath,finalpagename):
+def WriteHTMLPage(folderpath,htmlpath,finalpagename):
     with open(htmlpath,'r') as fh:
         template = fh.read()
     #Split the template between the body tags
@@ -116,3 +134,13 @@ def TotalPage(folderpath,htmlpath,finalpagename):
         fh.write(finalpage)
     
     return None
+
+def FindActions(folderpath):
+    meetinglist = FindMeetings(folderpath)
+    actionslist =[]
+    for meeting in meetinglist:
+        textlist = SplitbyCarriage(ReadinFile(FindLatest(meeting,folderpath)))
+        for textline in textlist:
+            if IsAction(textline):
+                actionslist.append(SplitAction(StripHead(textline)))
+    return actionslist
