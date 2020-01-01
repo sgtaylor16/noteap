@@ -3,6 +3,7 @@ from os import listdir
 from os.path import join
 from dateutil.parser import parse
 import numpy as np
+import pandas as pd
 
 actiontest = re.compile("#[A-Z]")
 
@@ -12,7 +13,6 @@ def ReadinFile(path):
 
 def DeleteEmptyLines(noteslist):
     return [line for line in noteslist if len(line) != 0]
-
 
 #Functions that work on textlines
 
@@ -73,8 +73,10 @@ def WriteNotes(textlist):
     return totalstring
 
 #Other stuff
-def AddHeader(meetingname):
-    return '<h1>' + meetingname + '</h1>'
+def AddHeader(headertext,level=1):
+    opentag = '<h' + str(level) + '>'
+    closetag = '</h' + str(level) + '>'
+    return opentag + headertext + closetag
     
 def FindMeetings(folderpath):
     '''Looks in folderpath for meetings.  A meeting is any markdown file 
@@ -119,7 +121,7 @@ def ComposePage(folderpath):
         finalstring = finalstring + temp
     return finalstring
 
-def WriteHTMLPage(folderpath,htmlpath,finalpagename):
+def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
     with open(htmlpath,'r') as fh:
         template = fh.read()
     #Split the template between the body tags
@@ -143,4 +145,17 @@ def FindActions(folderpath):
         for textline in textlist:
             if IsAction(textline):
                 actionslist.append(SplitAction(StripHead(textline)))
-    return actionslist
+    return pd.DataFrame(columns = ['Action','Name'],data = actionslist)
+
+def WriteActionsHTML(actionsdf):
+    people = actionsdf['Name'].unique()
+    actionstringall = AddHeader('Actions')
+    
+    for person in people:
+        persondf = actionsdf.query('Name == @person')
+        actionstring1person = AddHeader(person,2)
+        for index,action in persondf.iterrows():
+            actionstring1person = actionstring1person + AddTag(action['Action'],'ul')
+        actionstringall = actionstringall + actionstring1person
+    
+    return actionstringall     
