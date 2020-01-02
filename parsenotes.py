@@ -128,6 +128,8 @@ def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
     split_template = re.split("</body>",template)   #Rember that the /body is missing
     #Read in all of the notes
     allnotes = ComposePage(folderpath)
+    #Add in the actions
+    allnotes = allnotes + WriteActionsHTML(FindActions(folderpath))
     #Add the two together
     finalpage = split_template[0]  + allnotes  + '</body>' + split_template[1]
     #Write the final page
