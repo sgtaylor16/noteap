@@ -59,6 +59,8 @@ def AddClass(htmlline,class_name):
 
 #Functions that accept a list of text lines.
 def RenderNotes(textlist):
+    '''Takes a list of lines and calls Renderline on each of them to put html 
+    tags around each one'''
     htmllist = []
     for line in textlist:
         htmllist.append(RenderLine(line))
@@ -106,11 +108,13 @@ def FindLatest(meetingname,folderpath):
     return join(folderpath,latestmeeting)
 
 def ReadMeeting(meetingpath):
+    '''Creates a textlist from a meeting notes file'''
     with open(meetingpath) as fh:
         textlist = RenderNotes(DeleteEmptyLines(SplitbyCarriage(fh.read())))
     return textlist
     
 def ComposePage(folderpath):
+    '''Finds all the latest meetings in a given folder and returns a string with html tags'''
     #Get all the meetings
     allmeetings = FindMeetings(folderpath)
     finalstring = ''
@@ -129,7 +133,7 @@ def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
     #Read in all of the notes
     allnotes = ComposePage(folderpath)
     #Add in the actions
-    allnotes = allnotes + WriteActionsHTML(FindActions(folderpath))
+    allnotes = allnotes + "<p></p>" + WriteActionsHTML(FindActions(folderpath))
     #Add the two together
     finalpage = split_template[0]  + allnotes  + '</body>' + split_template[1]
     #Write the final page
@@ -159,5 +163,7 @@ def WriteActionsHTML(actionsdf):
         for index,action in persondf.iterrows():
             actionstring1person = actionstring1person + AddTag(action['Action'],'ul')
         actionstringall = actionstringall + actionstring1person
+
+        actionstringall = AddClass(AddTag(actionstringall,'div'),'actions')
     
     return actionstringall     
