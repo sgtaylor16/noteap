@@ -117,7 +117,7 @@ def ComposePage(folderpath):
     #For Each meeting compose a string of the meeting notes
     for meetingname in allmeetings:
         temp = WriteNotes(ReadMeeting(FindLatest(meetingname,folderpath)))
-        temp = AddHeader(meetingname) + temp
+        temp = AddClass(AddTag(AddHeader(meetingname) + temp,'div'),'meeting')
         finalstring = finalstring + temp
     return finalstring
 
