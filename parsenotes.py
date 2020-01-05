@@ -118,7 +118,7 @@ def ComposePage(folderpath):
     for meetingname in allmeetings:
         temp = WriteNotes(ReadMeeting(FindLatest(meetingname,folderpath)))
         temp = AddClass(AddTag(AddHeader(meetingname) + temp,'div'),'meeting')
-        finalstring = finalstring + temp
+        finalstring = finalstring + temp + '<p></p>'
     return finalstring
 
 def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
