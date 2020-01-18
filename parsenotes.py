@@ -8,23 +8,29 @@ import pandas as pd
 actiontest = re.compile("#[A-Z]")
 
 def ReadinFile(path):
+    '''Reads in file as a single sting'''
     with open(path,'r') as filename:
         return filename.read()
 
-def DeleteEmptyLines(noteslist):
-    return [line for line in noteslist if len(line) != 0]
-
 #Functions that work on textlines
 
-def SplitbyCarriage(textline):
-     return textline.split('\n')
+def SplitbyCarriage(string):
+    '''Takes a sting and makes a list of lines seperated by carraige return'''
+    return string.split('\n')
+
+def DeleteEmptyLines(noteslist):
+    '''Removes empty lines from a notelist'''
+    return [line for line in noteslist if len(line) != 0]
 
 def AddTag(textline,tag):
+    '''Takes a textline and encloses it in an html tag'''
     starttag = '<' + tag + '>'
     endtag = '</' + tag + '>'
     return starttag + textline + endtag
 
 def IsHeader(textline):
+    '''Returns True if the textline is identified as a header according to Markdown 
+    formatting'''
     return bool(re.match('#{1,}\s',textline))
 
 def IsAction(textline):
@@ -108,10 +114,10 @@ def FindLatest(meetingname,folderpath):
     return join(folderpath,latestmeeting)
 
 def ReadMeeting(meetingpath):
-    '''Creates a textlist from a meeting notes file'''
+    '''Creates a htmllist from a meeting notes file'''
     with open(meetingpath) as fh:
-        textlist = RenderNotes(DeleteEmptyLines(SplitbyCarriage(fh.read())))
-    return textlist
+        htmllist = RenderNotes(DeleteEmptyLines(SplitbyCarriage(fh.read())))
+    return htmllist
     
 def ComposePage(folderpath):
     '''Finds all the latest meetings in a given folder and returns a string with html tags'''
@@ -126,6 +132,12 @@ def ComposePage(folderpath):
     return finalstring
 
 def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
+    '''Function to write the complete page.
+    Arguments:
+    folderpath string - path to the folder where the notes reside.
+    htmlpath - path to the html header template
+    finalpagename - name of the final page, it will reside in the folderpath.
+    '''
     with open(htmlpath,'r') as fh:
         template = fh.read()
     #Split the template between the body tags
