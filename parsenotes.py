@@ -176,6 +176,6 @@ def WriteActionsHTML(actionsdf):
             actionstring1person = actionstring1person + AddTag(action['Action'],'ul')
         actionstringall = actionstringall + actionstring1person
 
-        actionstringall = AddClass(AddTag(actionstringall,'div'),'actions')
+    actionstringall = AddClass(AddTag(actionstringall,'div'),'actions')
     
     return actionstringall     
