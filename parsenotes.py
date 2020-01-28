@@ -4,10 +4,11 @@ from os.path import join
 from dateutil.parser import parse
 import numpy as np
 import pandas as pd
+import mistune
 
 actiontest = re.compile("#[A-Z]")
 
-def ReadinFile(path):
+def ReadinFiletoString(path):
     '''Reads in file as a single sting'''
     with open(path,'r') as filename:
         return filename.read()
@@ -49,17 +50,18 @@ def SplitAction(textline):
     
 def RenderLine(textline):
     '''Function that turns a text line into an html line with tags'''
-    if IsHeader(textline):
-        return AddTag(StripHead(textline),'h2')
-    elif IsAction(textline):
-        return AddClass(AddTag(StripHead(textline),'li'),"Action")
+    #Create the line
+    md = mistune.Markdown()
+    if IsAction(md(textline)):
+        return AddClass(md(textline),'Action')
     else:
-        return AddTag(StripHead(textline),'li')
+        return md(textline)
+
 
 #Functions that accept html lines
 
 def AddClass(htmlline,class_name):
-    '''Adds a class attribute to an html line.'''
+    '''Adds a class attribute to a line that already has html tags.'''
     templist = re.split('>',htmlline,maxsplit=1)
     return templist[0] + ' class="' + class_name + '">' + templist[1]
 
@@ -159,7 +161,7 @@ def FindActions(folderpath):
     meetinglist = FindMeetings(folderpath)
     actionslist =[]
     for meeting in meetinglist:
-        textlist = SplitbyCarriage(ReadinFile(FindLatest(meeting,folderpath)))
+        textlist = SplitbyCarriage(ReadinFiletoString(FindLatest(meeting,folderpath)))
         for textline in textlist:
             if IsAction(textline):
                 actionslist.append(SplitAction(StripHead(textline)))
