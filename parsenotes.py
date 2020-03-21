@@ -6,6 +6,11 @@ import numpy as np
 import pandas as pd
 import mistune
 
+'''
+TODO
+-Sublist
+'''
+
 actiontest = re.compile("#[A-Z]")
 
 def ReadinFiletoString(path):
@@ -36,7 +41,7 @@ def IsHeader(textline):
 
 def IsAction(textline):
     '''Function that returns True if textline has an #Name Tag.'''
-    return bool(re.search("#[A-Z]",textline))
+    return bool(re.findall("#[A-Za-z]{1,}",textline))
 
 def StripHead(textline):
     '''Function to strip a markdown # or * from the beginning of a line'''
@@ -65,6 +70,11 @@ def AddClass(htmlline,class_name):
     templist = re.split('>',htmlline,maxsplit=1)
     return templist[0] + ' class="' + class_name + '">' + templist[1]
 
+def AddID(htmlline,id_name):
+    '''Adds an ID attribute to a line that already has an html tag.'''
+    templist = re.split('>',htmlline,maxsplit = 1)
+    return templist[0] + ' id="' + id_name + '">' + templist[1]
+
 #Functions that accept a list of text lines.
 def RenderNotes(textlist):
     '''Takes a list of lines and calls Renderline on each of them to put html 
@@ -83,6 +93,12 @@ def WriteNotes(textlist):
     return totalstring
 
 #Other stuff
+
+def InsertHTML(page,variableID,texttoinsert):
+    restring = '{{ '+ variableID + ' }}'
+    tempsplit = page.split(restring)
+    return tempsplit[0] + texttoinsert + tempsplit[1]
+
 def AddHeader(headertext,level=1):
     opentag = '<h' + str(level) + '>'
     closetag = '</h' + str(level) + '>'
@@ -94,8 +110,7 @@ def FindMeetings(folderpath):
     mdfiles = [f for f in listdir(folderpath) if f[-3:] == ".md"]
     meetingslist1= []
     for file in mdfiles:
-        meeting = re.split('[0-9]{1,2}-[0-9]{1,2}-[0-9]{1,4}-',file)[1]
-        meeting = meeting.split('.')[0]
+        meeting = re.split('-[0-9]{1,2}-[0-9]{1,2}-[0-9]{1,4}',file)[0]
         meetingslist1.append(meeting)
     meetingslist2 = []
     for meeting in meetingslist1:
@@ -109,9 +124,9 @@ def FindLatest(meetingname,folderpath):
     thismeeting = [file for file in allfiles if meetingname in file]
     datearray = np.array([])
     for onemeeting in thismeeting:
-        onedate = parse(re.match('[0-9]{1,2}-[0-9]{1,2}-[0-9]{1,4}',onemeeting)[0])
-        alldates = np.append(datearray,onedate)
-    maxindex = alldates.argmax()
+        onedate = parse(re.search('[0-9]{1,2}-[0-9]{1,2}-[0-9]{2,4}(?=.md)',onemeeting)[0])
+        datearray = np.append(datearray,onedate)
+    maxindex = datearray.argmax()
     latestmeeting = thismeeting[maxindex]
     return join(folderpath,latestmeeting)
 
@@ -129,8 +144,9 @@ def ComposePage(folderpath):
     #For Each meeting compose a string of the meeting notes
     for meetingname in allmeetings:
         temp = WriteNotes(ReadMeeting(FindLatest(meetingname,folderpath)))
-        temp = AddClass(AddTag(AddHeader(meetingname) + temp,'div'),'meeting')
+        temp = AddID(AddClass(AddTag(AddHeader(meetingname) + temp,'div'),'meeting'),meetingname)
         finalstring = finalstring + temp + '<p></p>'
+    #Add a div to link
     return finalstring
 
 def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
@@ -142,14 +158,15 @@ def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
     '''
     with open(htmlpath,'r') as fh:
         template = fh.read()
-    #Split the template between the body tags
-    split_template = re.split("</body>",template)   #Rember that the /body is missing
+
     #Read in all of the notes
     allnotes = ComposePage(folderpath)
     #Add in the actions
-    allnotes = allnotes + "<p></p>" + WriteActionsHTML(FindActions(folderpath))
+    allnotes = WriteActionsHTML(FindActions(folderpath)) + "<p></p>" + allnotes
+    #Put a div around everything to fix margin with top menu bar
+    allnotes = AddClass(AddTag(allnotes,'div'),'ActionsAndNotes')
     #Add the two together
-    finalpage = split_template[0]  + allnotes  + '</body>' + split_template[1]
+    finalpage = InsertHTML(template,'meetings',allnotes)
     #Write the final page
     outfilepath = folderpath + '/' + finalpagename + '.html'
     with open(outfilepath,'w') as fh:
@@ -164,7 +181,10 @@ def FindActions(folderpath):
         textlist = SplitbyCarriage(ReadinFiletoString(FindLatest(meeting,folderpath)))
         for textline in textlist:
             if IsAction(textline):
-                actionslist.append(SplitAction(StripHead(textline)))
+                action = re.split('#[A-Z]',textline)[0]
+                people = re.findall('(?<=#)[A-Za-z]{1,}',textline)
+                for person in people:
+                    actionslist.append([action,person])
     return pd.DataFrame(columns = ['Action','Name'],data = actionslist)
 
 def WriteActionsHTML(actionsdf):
@@ -175,9 +195,9 @@ def WriteActionsHTML(actionsdf):
         persondf = actionsdf.query('Name == @person')
         actionstring1person = AddHeader(person,2)
         for index,action in persondf.iterrows():
-            actionstring1person = actionstring1person + AddTag(action['Action'],'ul')
+            actionstring1person = actionstring1person + RenderLine(action['Action'])
         actionstringall = actionstringall + actionstring1person
 
-    actionstringall = AddClass(AddTag(actionstringall,'div'),'actions')
+    actionstringall = AddID(AddClass(AddTag(actionstringall,'div'),'actions'),'ActionList')
     
     return actionstringall     
