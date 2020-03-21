@@ -106,7 +106,7 @@ def AddHeader(headertext,level=1):
     
 def FindMeetings(folderpath):
     '''Looks in folderpath for meetings.  A meeting is any markdown file 
-    with the following format: dd-mm-yy.[meetingname] returns a list of distinct meeting names'''
+    with the following format: dd-mm-yy-[meetingname] returns a list of distinct meeting names'''
     mdfiles = [f for f in listdir(folderpath) if f[-3:] == ".md"]
     meetingslist1= []
     for file in mdfiles:

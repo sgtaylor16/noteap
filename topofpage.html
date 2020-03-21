@@ -1,15 +1,39 @@
 <html>
     <head>
-        <title>CMC Meeting Notes</title>
+        <title>Meeting Notes</title>
         <style>
             body {background-color: lightgray;}
-            .action {color:red;}
-            div.meeting {background-color: white;}
-            div.actions {background-color: white;}
-                    
+
+            .header {
+                overflow:hidden;
+                background-color:#333;
+                position:fixed;
+                top: 0;
+                width: 100%;
+            }
+
+            .header a{
+                color: white;
+                padding: 2mm;
+            }
+
+            .action {color: red;}
+
+            div.meeting{background-color: white;}
+            div.meeting{background-color: white;}
+                   
         </style>
     </head>
     <body>
-        
+        <div class="header">
+            <a href="#ActionList">Actions</a>
+            <a href="#DesignMeeting1">Design Meeting #1</a>
+            <a href="#DesignMeeting2">Design Meeting #2</a>
+            <a href="#Procurement">Procurement</a>
+            <a href="#Manufacturing">Manufacturing</a>
+            <a href="#Test">Test</a>
+        </div>
+
+    {{ meetings }}
     </body>
 </html>
