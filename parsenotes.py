@@ -58,7 +58,8 @@ def RenderLine(textline):
     #Create the line
     md = mistune.Markdown()
     if IsAction(md(textline)):
-        return AddClass(md(textline),'Action')
+        #return AddClass(md(textline),'Action')
+        return AddStyle(md(textline),{'color':'red'})
     else:
         return md(textline)
 
@@ -75,6 +76,16 @@ def AddID(htmlline,id_name):
     templist = re.split('>',htmlline,maxsplit = 1)
     return templist[0] + ' id="' + id_name + '">' + templist[1]
 
+def AddStyle(htmlline,styledict):
+    '''Adds inline style'''
+    templist = re.split('>',htmlline,maxsplit=1)
+    stylestring = "style ="
+    newstring=' style='
+    for k,v in styledict.items():
+        newstring = newstring +'"' + k + ":" +v + '"' +";"
+
+    return templist[0] + newstring +'>' + templist[1]
+        
 #Functions that accept a list of text lines.
 def RenderNotes(textlist):
     '''Takes a list of lines and calls Renderline on each of them to put html 
@@ -95,11 +106,15 @@ def WriteNotes(textlist):
 #Other stuff
 
 def InsertHTML(page,variableID,texttoinsert):
-    restring = '{{ '+ variableID + ' }}'
+    restring = '{{ '+ variableID + ' }}'  #This has the potential to be a little buggy
     tempsplit = page.split(restring)
     return tempsplit[0] + texttoinsert + tempsplit[1]
 
 def AddHeader(headertext,level=1):
+    '''Adds a heater html tag to a textline
+    headertext string - textline to enclose in header tag
+    level int - header level number (h1,h2,etc)
+    '''
     opentag = '<h' + str(level) + '>'
     closetag = '</h' + str(level) + '>'
     return opentag + headertext + closetag
@@ -144,7 +159,7 @@ def ComposePage(folderpath):
     #For Each meeting compose a string of the meeting notes
     for meetingname in allmeetings:
         temp = WriteNotes(ReadMeeting(FindLatest(meetingname,folderpath)))
-        temp = AddID(AddClass(AddTag(AddHeader(meetingname) + temp,'div'),'meeting'),meetingname)
+        temp = AddID(AddTag(AddHeader(meetingname) + temp,'div'),meetingname)
         finalstring = finalstring + temp + '<p></p>'
     #Add a div to link
     return finalstring
@@ -175,6 +190,9 @@ def WriteNotesHTMLPage(folderpath,htmlpath,finalpagename):
     return None
 
 def FindActions(folderpath):
+    '''
+    Finds the Actions Marked with a Hashtag in the Notes
+    '''
     meetinglist = FindMeetings(folderpath)
     actionslist =[]
     for meeting in meetinglist:
